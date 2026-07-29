@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f0f1e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0f0f5" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="工作台">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<title>个人工作台 · Workbench</title>
+<style>
+/* ===================== CSS变量 ===================== */
+:root {
+  --bg-primary: #0f0f1e;
+  --bg-secondary: #1a1a2e;
+  --bg-card: rgba(30,30,60,0.6);
+  --bg-card-hover: rgba(40,40,80,0.7);
+  --bg-input: rgba(20,20,50,0.8);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.18);
+  --text-primary: #e8e8f0;
+  --text-secondary: #9090b0;
+  --text-muted: #606080;
+  --accent: #6c5ce7;
+  --accent-hover: #7f70f0;
+  --accent-glow: rgba(108,92,231,0.3);
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --danger: #e17055;
+  --info: #0984e3;
+  --shadow: 0 8px 32px rgba(0,0,0,0.3);
+  --radius: 16px;
+  --radius-sm: 8px;
+  --sidebar-width: 220px;
+  --transition: 0.3s ease;
+}
+[data-theme="light"] {
+  --bg-primary: #f0f0f5;
+  --bg-secondary: #ffffff;
+  --bg-card: rgba(255,255,255,0.75);
+  --bg-card-hover: rgba(255,255,255,0.9);
+  --bg-input: rgba(240,240,245,0.9);
+  --border: rgba(0,0,0,0.08);
+  --border-hover: rgba(0,0,0,0.18);
+  --text-primary: #1a1a2e;
+  --text-secondary: #505060;
+  --text-muted: #909098;
+  --shadow: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+/* 烟花主题 - 仅雅思页 */
+.page-ielts {
+  --fw1: #ff006e; --fw2: #fb5607; --fw3: #ffbe0b; --fw4: #8338ec; --fw5: #3a86ff;
+}
+.page-ielts .card { background: rgba(20,15,40,0.7); border-color: rgba(255,0,110,0.15); box-shadow: 0 8px 32px rgba(255,0,110,0.1); }
+.page-ielts .card-header { border-bottom-color: rgba(255,0,110,0.2); }
+.page-ielts .btn-primary { background: var(--fw1); border-color: var(--fw1); }
+.page-ielts .btn-primary:hover { background: #e60063; }
+.page-ielts .tab-btn.active { background: var(--fw1); border-color: var(--fw1); color:#fff; }
+[data-theme="light"] .page-ielts .card { background: rgba(255,240,245,0.8); border-color: rgba(255,0,110,0.1); }
+
+/* ===== 安全区域适配 ===== */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+.sidebar { padding-top: var(--safe-top); }
+@media(max-width:768px) {
+  .mobile-menu-btn { top: calc(16px + var(--safe-top)); left: calc(16px + var(--safe-left)); }
+  .content-area { padding-top: calc(60px + var(--safe-top)); padding-bottom: calc(16px + var(--safe-bottom)); }
+}
+.toast { bottom: calc(30px + var(--safe-bottom)); }
+.modal-box { margin-top: var(--safe-top); margin-bottom: var(--safe-bottom); }
+
+/* ===== 触摸优化 ===== */
+@media (hover: none) {
+  .nav-item:hover, .cal-day:hover, .btn:hover, .tab-btn:hover,
+  .expandable-card:hover, .card:hover, .item-row:hover {
+    background: revert; border-color: revert; color: revert;
+  }
+  .nav-item:active, .btn:active, .tab-btn:active, .cal-day:active {
+    opacity: 0.7; transform: scale(0.97); transition: transform 0.1s;
+  }
+}
+@media (max-width: 768px) {
+  .btn { padding: 10px 16px; font-size: 13px; min-height: 36px; }
+  .nav-item { padding: 14px 16px; }
+  .cal-day { min-height: 36px; }
+  .tab-btn { padding: 10px 16px; }
+  .feeling-tag { padding: 6px 14px; }
+}
+.nav-item, .nav-group-title, .cal-day, .tab-btn, .mobile-menu-btn, .sidebar-header {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+img, a { -webkit-touch-callout: none; }
+@media (max-width: 768px) {
+  .input, textarea.input, select.input { font-size: 16px; }
+}
+@media (min-width: 769px) {
+  .input, textarea.input, select.input { font-size: 13px; }
+}
+
+/* ===================== 全局重置 ===================== */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Roboto', sans-serif;
+  background: var(--bg-primary); color: var(--text-primary); min-height:100vh; transition: background 0.3s, color 0.3s;
+}
+body::before {
+  content:''; position:fixed; top:-50%; left:-50%; width:200%; height:200%;
+  background: radial-gradient(circle at 20% 30%, rgba(108,92,231,0.06), transparent 40%),
+              radial-gradient(circle at 80% 70%, rgba(0,184,148,0.04), transparent 40%);
+  pointer-events:none; z-index:0;
+}
+
+/* ===================== 布局 ===================== */
+.app-layout { display:flex; min-height:100vh; position:relative; z-index:1; }
+
+.sidebar {
+  width: var(--sidebar-width); position:fixed; left:0; top:0; bottom:0;
+  background: var(--bg-card); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:100; transition: transform var(--transition);
+}
+.sidebar-header { padding:20px; border-bottom:1px solid var(--border); text-align:center; }
+.sidebar-header h1 { font-size:16px; font-weight:700; }
+.sidebar-header .clock-mini { font-size:28px; font-weight:200; margin-top:8px; background:linear-gradient(135deg,var(--accent),var(--info)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-variant-numeric:tabular-nums; }
+.sidebar-nav { flex:1; overflow-y:auto; padding:8px; }
+.sidebar-nav::-webkit-scrollbar { width:3px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background:var(--border-hover); border-radius:3px; }
+.sidebar-footer { padding:12px; border-top:1px solid var(--border); }
+
+.nav-group { margin-bottom:4px; }
+.nav-group-title { padding:8px 16px; font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; }
+.nav-group-title::after { content:'▸'; font-size:10px; transition:transform 0.2s; }
+.nav-group.open .nav-group-title::after { transform:rotate(90deg); }
+.nav-group-items { max-height:0; overflow:hidden; transition:max-height 0.3s; }
+.nav-group.open .nav-group-items { max-height:200px; }
+
+.nav-item {
+  display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:var(--radius-sm);
+  cursor:pointer; color:var(--text-secondary); font-size:13px; transition:all 0.2s; margin-bottom:2px;
+}
+.nav-item:hover { background:var(--bg-secondary); color:var(--text-primary); }
+.nav-item.active { background:var(--accent); color:#fff; box-shadow:0 4px 12px var(--accent-glow); }
+
+.content-area { flex:1; margin-left:var(--sidebar-width); padding:24px; min-height:100vh; overflow-y:auto; }
+
+.mobile-menu-btn {
+  display:none; position:fixed; top:16px; left:16px; z-index:200;
+  width:40px; height:40px; border:1px solid var(--border); border-radius:50%;
+  background:var(--bg-card); color:var(--text-primary); cursor:pointer; font-size:18px;
+  align-items:center; justify-content:center;
+}
+@media(max-width:768px) {
+  .sidebar { transform:translateX(-100%); }
+  .sidebar.open { transform:translateX(0); }
+  .content-area { margin-left:0; padding:16px; padding-top:60px; }
+  .mobile-menu-btn { display:flex; }
+}
+
+/* ===================== 通用组件 ===================== */
+.card {
+  background:var(--bg-card); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; transition:border-color 0.3s;
+}
+.card:hover { border-color:var(--border-hover); }
+.card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+.card-title { font-size:16px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.card-actions { display:flex; gap:8px; }
+
+.btn {
+  padding:7px 14px; font-size:12px; border:1px solid var(--border); border-radius:var(--radius-sm);
+  background:transparent; color:var(--text-secondary); cursor:pointer; transition:all 0.2s; font-family:inherit; white-space:nowrap;
+}
+.btn:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+.btn-primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+.btn-primary:hover { background:var(--accent-hover); }
+.btn-sm { padding:5px 10px; font-size:11px; }
+.btn-danger { color:var(--danger); border-color:rgba(225,112,85,0.3); }
+.btn-danger:hover { background:var(--danger); color:#fff; border-color:var(--danger); }
+
+.input {
+  padding:9px 14px; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--radius-sm);
+  color:var(--text-primary); font-size:13px; font-family:inherit; transition:border-color 0.2s; width:100%;
+}
+.input:focus { outline:none; border-color:var(--accent); }
+select.input { cursor:pointer; }
+
+.tabs-bar { display:flex; gap:4px; margin-bottom:16px; flex-wrap:wrap; }
+.tab-btn {
+  padding:7px 16px; font-size:13px; border:1px solid var(--border); border-radius:20px;
+  background:transparent; color:var(--text-secondary); cursor:pointer; transition:all 0.2s; font-family:inherit;
+}
+.tab-btn:hover { border-color:var(--accent); color:var(--accent); }
+.tab-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.kanban-board { display:grid; gap:16px; }
+.kanban-4col { grid-template-columns: repeat(4, 1fr); }
+.kanban-3col { grid-template-columns: repeat(3, 1fr); }
+@media(max-width:1000px) { .kanban-4col { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width:700px) { .kanban-3col, .kanban-4col { grid-template-columns: 1fr; } }
+
+.kanban-column {
+  background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; min-height:300px;
+}
+.kanban-column-header {
+  display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;
+  padding-bottom:10px; border-bottom:1px solid var(--border); font-size:14px; font-weight:600;
+}
+.kanban-column-body { max-height:500px; overflow-y:auto; }
+.kanban-column-body::-webkit-scrollbar { width:3px; }
+.kanban-column-body::-webkit-scrollbar-thumb { background:var(--border-hover); border-radius:3px; }
+
+.expandable-card {
+  background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-sm);
+  margin-bottom:8px; transition:border-color 0.2s;
+}
+.expandable-card:hover { border-color:var(--border-hover); }
+.expandable-card-header {
+  padding:12px 16px; cursor:pointer; display:flex; align-items:center; gap:10px;
+  font-size:14px;
+}
+.expandable-card-header .arrow { font-size:10px; color:var(--text-muted); transition:transform 0.3s; }
+.expandable-card.open .expandable-card-header .arrow { transform:rotate(180deg); }
+.expandable-card-body { max-height:0; overflow:hidden; padding:0 16px; opacity:0; transition: max-height 0.4s ease, padding 0.3s, opacity 0.3s; }
+.expandable-card.open .expandable-card-body { max-height:800px; padding:12px 16px; opacity:1; }
+
+.priority-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.priority-high { background:var(--danger); box-shadow:0 0 6px var(--danger); }
+.priority-medium { background:var(--warning); }
+.priority-low { background:var(--success); }
+
+.status-badge { padding:2px 8px; font-size:11px; border-radius:4px; }
+.status-active { background:var(--info); color:#fff; }
+.status-done { background:var(--success); color:#fff; }
+
+.empty-state { text-align:center; padding:40px 0; color:var(--text-muted); font-size:13px; }
+
+/* Modal */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);
+  z-index:500; display:none; align-items:center; justify-content:center;
+}
+.modal-overlay.show { display:flex; }
+.modal-box {
+  background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius);
+  max-width:560px; width:90%; max-height:80vh; overflow-y:auto; padding:24px; box-shadow:var(--shadow);
+}
+.modal-box::-webkit-scrollbar { width:4px; }
+.modal-box::-webkit-scrollbar-thumb { background:var(--border-hover); border-radius:4px; }
+.modal-title { font-size:18px; font-weight:600; margin-bottom:20px; }
+.modal-footer { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(80px);
+  padding:10px 20px; background:var(--bg-secondary); border:1px solid var(--accent); border-radius:var(--radius-sm);
+  color:var(--text-primary); font-size:13px; box-shadow:var(--shadow); z-index:600; transition:transform 0.3s, opacity 0.3s; opacity:0;
+}
+.toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+/* 横幅 */
+.banner {
+  background: linear-gradient(135deg, var(--accent-glow), rgba(0,184,148,0.1));
+  border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:20px;
+  display:flex; gap:20px; align-items:center; flex-wrap:wrap;
+}
+.banner-stat { text-align:center; }
+.banner-stat-value { font-size:24px; font-weight:600; color:var(--accent); }
+.banner-stat-label { font-size:11px; color:var(--text-secondary); margin-top:4px; }
+
+/* 日历 */
+.cal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.cal-title { font-size:14px; font-weight:600; }
+.cal-nav { width:28px; height:28px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--text-secondary); cursor:pointer; font-size:14px; }
+.cal-nav:hover { background:var(--accent); color:#fff; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-dh { text-align:center; font-size:11px; color:var(--text-muted); padding:4px 0; }
+.cal-day {
+  aspect-ratio:1; display:flex; align-items:center; justify-content:center; font-size:12px;
+  border-radius:6px; cursor:pointer; position:relative; color:var(--text-secondary); transition:all 0.2s;
+}
+.cal-day:hover { background:var(--bg-secondary); }
+.cal-day.other { color:var(--text-muted); opacity:0.4; }
+.cal-day.today { background:var(--accent); color:#fff; font-weight:600; }
+.cal-day.selected { outline:2px solid var(--accent); outline-offset:-2px; }
+.cal-dot { position:absolute; bottom:2px; width:4px; height:4px; border-radius:50%; }
+.cal-dots { position:absolute; bottom:2px; display:flex; gap:2px; }
+
+/* 饼图 */
+.pie-wrap { display:flex; gap:24px; align-items:center; }
+.pie-chart { width:200px; height:200px; border-radius:50%; position:relative; }
+.pie-chart-inner { position:absolute; inset:30px; background:var(--bg-secondary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600; }
+.pie-legend { display:flex; flex-direction:column; gap:6px; }
+.pie-legend-item { display:flex; align-items:center; gap:8px; font-size:13px; }
+.pie-legend-color { width:12px; height:12px; border-radius:3px; }
+
+/* 呼吸练习 */
+.breathing-circle {
+  width:160px; height:160px; border-radius:50%; background:var(--accent); opacity:0.3;
+  display:flex; align-items:center; justify-content:center; font-size:16px; color:#fff;
+  animation: breathAnim 19s ease-in-out infinite;
+}
+@keyframes breathAnim {
+  0%,100% { transform:scale(0.3); opacity:0.3; }
+  21% { transform:scale(1); opacity:0.6; }
+  58% { transform:scale(1); opacity:0.5; }
+  100% { transform:scale(0.3); opacity:0.3; }
+}
+
+/* 计时器 */
+.timer-display { font-size:48px; font-weight:200; font-variant-numeric:tabular-nums; text-align:center; color:var(--accent); }
+.timer-label { font-size:11px; color:var(--text-secondary); text-align:center; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+
+/* 感受标签 */
+.feeling-tag {
+  padding:3px 10px; font-size:11px; border-radius:12px; cursor:pointer; border:1px solid var(--border);
+  transition:all 0.2s; font-family:inherit; background:transparent; color:var(--text-secondary);
+}
+.feeling-tag:hover { border-color:var(--accent); }
+.feeling-tag.active-super { background:var(--success); color:#fff; border-color:var(--success); }
+.feeling-tag.active-pain { background:var(--danger); color:#fff; border-color:var(--danger); }
+.feeling-tag.active-impulse { background:var(--warning); color:#333; border-color:var(--warning); }
+
+/* 动画 */
+@keyframes fadeIn { from{opacity:0;transform:translateY(-8px);} to{opacity:1;transform:translateY(0);} }
+.fade-in { animation:fadeIn 0.3s ease; }
+
+/* 通用列表 */
+.item-list { list-style:none; }
+.item-row {
+  display:flex; align-items:center; gap:12px; padding:10px 14px; margin-bottom:4px;
+  background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-sm);
+  transition:all 0.2s; animation:fadeIn 0.3s ease;
+}
+.item-row:hover { border-color:var(--border-hover); }
+
+/* 两栏布局 */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:900px) { .two-col { grid-template-columns:1fr; } }
+
+/* 三栏(主+侧边栏) */
+.main-sidebar { display:grid; grid-template-columns:1fr 280px; gap:20px; }
+@media(max-width:900px) { .main-sidebar { grid-template-columns:1fr; } }
+
+/* 进度条 */
+.progress-bar { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.3s; }
+
+/* 天气 */
+.weather-inline { display:flex; align-items:center; gap:8px; }
+.weather-icon { font-size:24px; }
+.weather-temp { font-size:20px; font-weight:300; }
+.weather-desc { font-size:12px; color:var(--text-secondary); }
+
+/* 烟花页看板列彩色顶边 */
+.page-ielts .kanban-column:nth-child(1) { border-top:3px solid var(--fw1); }
+.page-ielts .kanban-column:nth-child(2) { border-top:3px solid var(--fw3); }
+.page-ielts .kanban-column:nth-child(3) { border-top:3px solid var(--fw4); }
+.page-ielts .kanban-column:nth-child(4) { border-top:3px solid var(--fw5); }
+</style>
+</head>
+<body>
+
+<!-- 全局组件 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" id="modalSave">保存</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+
+<!-- 应用布局 -->
+<div class="app-layout">
+  <!-- 左侧导航栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1>🛠 个人工作台</h1>
+      <div class="clock-mini" id="clockMini">00:00</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group open" id="navPinned">
+        <div class="nav-group-title" onclick="toggleNavGroup('navPinned')">📌 置顶区</div>
+        <div class="nav-group-items">
+          <div class="nav-item" data-page="home">🧭 行动启示卡</div>
+          <div class="nav-item" data-page="cockpit">📋 今日驾驶舱</div>
+        </div>
+      </div>
+      <div class="nav-group open" id="navLearn">
+        <div class="nav-group-title" onclick="toggleNavGroup('navLearn')">📚 专项学习</div>
+        <div class="nav-group-items">
+          <div class="nav-item" data-page="ielts">🇬🇧 雅思备考</div>
+          <div class="nav-item" data-page="fireworks">🎆 烟花知识</div>
+          <div class="nav-item" data-page="finance">💰 金融知识</div>
+        </div>
+      </div>
+      <div class="nav-item" data-page="accounting">💰 记账区</div>
+      <div class="nav-item" data-page="tools">🧰 工具箱</div>
+      <div class="nav-item" data-page="manual">📖 使用说明书</div>
+      <div class="nav-item" data-page="settings">⚙️ 设置</div>
+    </nav>
+    <div class="sidebar-footer">
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;">v1.0 · 数据本地存储</div>
+    </div>
+  </aside>
+
+  <!-- 右侧内容区 -->
+  <main class="content-area" id="contentArea"></main>
+</div>
+
+<script>
+/* ========================================================================
+   个人工作台 - 完整实现
+   ======================================================================== */
+
+// ===================== 通用工具 =====================
+const $ = id => document.getElementById(id);
+const PREFIX = 'workbench_';
+function save(k,v){ try{localStorage.setItem(PREFIX+k,JSON.stringify(v))}catch(e){} }
+function load(k,d){ try{const v=localStorage.getItem(PREFIX+k);return v?JSON.parse(v):d}catch(e){return d} }
+function genId(){ return Date.now()+Math.floor(Math.random()*1000); }
+function esc(s){ if(!s)return''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+function fmtDate(ts){ const d=new Date(ts); return `${d.getMonth()+1}月${d.getDate()}日`; }
+function fmtTime(ts){ const d=new Date(ts); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function fmtElapsed(sec){ const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60; return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
+function showToast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2000); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+// 设置
+function getSettings(){ return load('settings',{theme:'dark',kimiApiKey:'',activePage:'home'}); }
+function saveSettings(s){ save('settings',s); }
+function getSetting(k,d){ const s=getSettings(); return s[k]!==undefined?s[k]:d; }
+function saveSetting(k,v){ const s=getSettings(); s[k]=v; saveSettings(s); }
+
+// ===================== 路由 =====================
+const Pages = {
+  home:       { label:'🧭 行动启示卡',    render:renderHome },
+  cockpit:    { label:'📋 今日驾驶舱',    render:renderCockpit },
+  ielts:      { label:'🇬🇧 雅思备考',     render:renderIelts },
+  fireworks:  { label:'🎆 烟花知识',      render:renderFireworks },
+  finance:    { label:'💰 金融知识',      render:renderFinance },
+  accounting: { label:'💰 记账区',        render:renderAccounting },
+  tools:      { label:'🧰 工具箱',        render:renderTools },
+  manual:     { label:'📖 使用说明书',    render:renderManual },
+  settings:   { label:'⚙️ 设置',         render:renderSettings }
+};
+
+let currentPage = 'home';
+let weatherData = null;
+
+function navigateTo(pageId){
+  currentPage = pageId;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const active = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+  if(active) active.classList.add('active');
+  const c=$('contentArea'); c.innerHTML='';
+  c.className = pageId==='ielts' ? 'page-ielts' : '';
+  Pages[pageId].render(c);
+  saveSetting('activePage',pageId);
+  c.scrollTop=0;
+  // 移动端自动收起侧栏
+  $('sidebar').classList.remove('open');
+}
+
+function toggleNavGroup(id){
+  const g=$(id);
+  g.classList.toggle('open');
+}
+
+// ===================== 全局时钟 =====================
+function updateClock(){
+  const now=new Date();
+  $('clockMini').textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+}
+setInterval(updateClock,1000); updateClock();
+
+// ===================== 天气 =====================
+async function fetchWeather(){
+  try{
+    const res=await fetch('https://wttr.in/?format=j1');
+    const data=await res.json();
+    const c=data.current_condition[0];
+    const iconMap={'113':'☀️','116':'⛅','119':'☁️','122':'☁️','143':'🌫️','176':'🌦️','200':'⛈️','230':'❄️','248':'🌫️','263':'🌦️','266':'🌧️','293':'🌦️','296':'🌧️','302':'🌧️','305':'🌧️','323':'🌨️','326':'🌨️','329':'❄️','332':'❄️','335':'❄️','338':'❄️','353':'🌦️','356':'🌧️','359':'🌧️','386':'⛈️','389':'⛈️','395':'❄️'};
+    const descMap={'113':'晴','116':'多云','119':'阴','122':'阴天','143':'雾','176':'小雨','200':'雷阵雨','230':'雪','248':'雾','263':'毛毛雨','266':'小雨','293':'间歇小雨','296':'小雨','302':'中雨','305':'大雨','323':'小雪','326':'小雪','329':'大雪','332':'大雪','335':'大雪','338':'大雪','353':'阵雨','356':'大雨','359':'大雨','386':'雷阵雨','389':'强雷雨','395':'大雪'};
+    const area=data.nearest_area[0].areaName[0].value;
+    const code=c.weatherCode;
+    weatherData={icon:iconMap[code]||'🌡️',temp:c.temp_C+'°C',desc:descMap[code]||c.weatherDesc[0].value,area,humidity:c.humidity,wind:c.windspeedKmph};
+  }catch(e){
+    try{
+      const pos=await(await fetch('https://ipapi.co/json/')).json();
+      const lat=pos.latitude||39.9,lon=pos.longitude||116.4,city=pos.city||'本地';
+      const w=await(await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)).json();
+      const cw=w.current_weather,code=cw.weathercode;
+      const iM={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'阵雨',81:'阵雨',82:'暴雨',95:'⛈️'};
+      const dM={0:'晴',1:'少云',2:'多云',3:'阴',45:'雾',48:'雾凇',51:'毛毛雨',53:'毛毛雨',55:'小雨',61:'小雨',63:'中雨',65:'大雨',71:'小雪',73:'中雪',75:'大雪',80:'阵雨',81:'阵雨',82:'暴雨',95:'雷雨'};
+      weatherData={icon:iM[code]||'🌡️',temp:cw.temperature+'°C',desc:dM[code]||'未知',area:city,humidity:'-',wind:cw.windspeed};
+    }catch(e2){ weatherData={icon:'🌡️',temp:'--',desc:'获取失败',area:'--',humidity:'-',wind:'-'}; }
+  }
+}
+fetchWeather(); setInterval(fetchWeather,3600000);
+
+// ===================== Kimi API =====================
+// AI提供商配置
+const AI_PROVIDERS = {
+  kimi: { name:'Kimi (Moonshot)', baseUrl:'https://api.moonshot.cn/v1/chat/completions', model:'kimi-moonshot-v1-8k', keyLabel:'Kimi API Key', keyHint:'sk-...', keyUrl:'https://platform.moonshot.cn' },
+  deepseek: { name:'DeepSeek', baseUrl:'https://api.deepseek.com/v1/chat/completions', model:'deepseek-chat', keyLabel:'DeepSeek API Key', keyHint:'sk-...', keyUrl:'https://platform.deepseek.com' },
+  openai: { name:'OpenAI', baseUrl:'https://api.openai.com/v1/chat/completions', model:'gpt-4o-mini', keyLabel:'OpenAI API Key', keyHint:'sk-...', keyUrl:'https://platform.openai.com' },
+  custom: { name:'自定义(兼容OpenAI格式)', baseUrl:'', model:'', keyLabel:'API Key', keyHint:'sk-...', keyUrl:'' }
+};
+
+async function callAI(prompt, systemMsg=''){
+  const provider=getSetting('aiProvider','kimi');
+  const config=AI_PROVIDERS[provider];
+  const key=getSetting('aiApiKey','');
+  let baseUrl=config.baseUrl, model=config.model;
+  // 自定义提供商用用户填的URL和模型
+  if(provider==='custom'){ baseUrl=getSetting('aiCustomUrl',''); model=getSetting('aiCustomModel',''); }
+  if(!key||!baseUrl){ showToast('请先在设置页配置 AI API Key 和提供商'); navigateTo('settings'); return null; }
+  try{
+    const res=await fetch(baseUrl,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({
+        model: model,
+        messages:[
+          {role:'system',content:systemMsg||'你是一个帮助用户学习和提升的智能助手，回答简洁实用，中文回复。'},
+          {role:'user',content:prompt}
+        ],
+        temperature:0.7
+      })
+    });
+    const data=await res.json();
+    if(data.error){ showToast('AI API错误: '+data.error.message); return null; }
+    return data.choices[0].message.content;
+  }catch(e){ showToast('AI API调用失败: '+e.message); return null; }
+}
+// 保留旧函数名兼容
+async function callKimi(prompt, systemMsg=''){ return callAI(prompt, systemMsg); }
+
+// ===================== 通用组件 =====================
+function openModal(title,bodyHTML,onSave){
+  $('modalTitle').textContent=title;
+  $('modalBody').innerHTML=bodyHTML;
+  $('modalSave').onclick=onSave;
+  $('modalOverlay').classList.add('show');
+}
+function closeModal(){ $('modalOverlay').classList.remove('show'); }
+
+function weatherHTML(){
+  if(!weatherData) return '<div class="weather-inline"><span>⏳ 加载中...</span></div>';
+  return `<div class="weather-inline"><span class="weather-icon">${weatherData.icon}</span><span class="weather-temp">${weatherData.temp}</span><span class="weather-desc">${weatherData.area} · ${weatherData.desc} · 湿度${weatherData.humidity}%</span></div>`;
+}
+
+function taskStats(){
+  const tasks=load('tasks',[]);
+  const total=tasks.length, done=tasks.filter(t=>t.done).length, active=total-done;
+  return {total,done,active};
+}
+
+// ===================== 置顶区 - 行动启示卡 =====================
+function renderHome(c){
+  const st=taskStats();
+  const insps=load('inspirations',[]);
+  const flow=load('todayFlow',[]).filter(f=>f.date===todayStr());
+
+  c.innerHTML=`
+    <div class="banner">
+      ${weatherHTML()}
+      <div class="banner-stat"><div class="banner-stat-value">${st.active}</div><div class="banner-stat-label">今日待办</div></div>
+      <div class="banner-stat"><div class="banner-stat-value">${st.done}</div><div class="banner-stat-label">已完成</div></div>
+      <div style="flex:1;min-width:200px;font-size:14px;color:var(--text-secondary);padding-left:16px;border-left:1px solid var(--border);">
+        ${insps.length>0?esc(insps[0].text):'添加一条行动启示，指引今天的行动 ✨'}
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title">🧭 行动启示卡</div><div class="card-actions"><button class="btn btn-sm btn-primary" id="addInspBtn">+ 新启示</button></div></div>
+        <div id="inspList">${insps.map(i=>`
+          <div class="item-row fade-in">
+            <span style="flex:1;font-size:14px;">${esc(i.text)}</span>
+            <button class="btn btn-sm" onclick="startTimerFromInsp('${esc(i.text)}')">⏱ 计时</button>
+            <button class="btn btn-sm btn-danger" onclick="delInsp(${i.id})">✕</button>
+          </div>
+        `).join('')||'<div class="empty-state">暂无行动启示</div>'}</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">📋 今日动态流</div></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input class="input" id="flowInput" placeholder="添加今日事项..." style="flex:1">
+          <input class="input" id="flowTime" placeholder="时间" value="${fmtTime(Date.now())}" style="width:70px">
+          <button class="btn btn-primary btn-sm" id="addFlowBtn">添加</button>
+        </div>
+        <div id="flowList">${flow.sort((a,b)=>a.time>b.time?1:-1).map(f=>`
+          <div class="item-row fade-in ${f.done?'opacity:0.5':''}">
+            <span style="font-size:12px;color:var(--text-muted);width:50px">${esc(f.time)}</span>
+            <span style="flex:1;font-size:14px;${f.done?'text-decoration:line-through':''}">${esc(f.text)}</span>
+            ${f.tags?f.tags.map(t=>`<span style="font-size:11px;color:var(--accent);">#${esc(t)}</span>`).join(''):''}
+            <button class="btn btn-sm" onclick="toggleFlow(${f.id})">${f.done?'↩':'✓'}</button>
+            <button class="btn btn-sm btn-danger" onclick="delFlow(${f.id})">✕</button>
+          </div>
+        `).join('')||'<div class="empty-state">今日暂无事项</div>'}</div>
+      </div>
+    </div>
+  `;
+
+  $('addInspBtn').onclick=()=>{
+    openModal('添加行动启示',
+      `<textarea class="input" id="inspText" rows="3" placeholder="当我...，我可以..."></textarea>`,
+      ()=>{ const t=$('inspText').value.trim(); if(!t)return; const insps=load('inspirations',[]); insps.push({id:genId(),text:t,enabled:true}); save('inspirations',insps); closeModal(); navigateTo('home'); showToast('启示已添加'); }
+    );
+  };
+  $('addFlowBtn').onclick=()=>{
+    const text=$('flowInput').value.trim(), time=$('flowTime').value.trim();
+    if(!text)return;
+    const fl=load('todayFlow',[]);
+    fl.push({id:genId(),date:todayStr(),time:time||fmtTime(Date.now()),text:text,done:false,tags:[]});
+    save('todayFlow',fl); $('flowInput').value=''; navigateTo('home');
+  };
+}
+
+window.delInsp=function(id){ const insps=load('inspirations',[]).filter(i=>i.id!==id); save('inspirations',insps); navigateTo('home'); };
+window.toggleFlow=function(id){ const fl=load('todayFlow',[]); const f=fl.find(f=>f.id===id); if(f)f.done=!f.done; save('todayFlow',fl); navigateTo('home'); };
+window.delFlow=function(id){ const fl=load('todayFlow',[]).filter(f=>f.id!==id); save('todayFlow',fl); navigateTo('home'); };
+window.startTimerFromInsp=function(text){ navigateTo('tools'); setTimeout(()=>{ if(typeof startTagTimer==='function') startTagTimer(text); },100); };
+
+// ===================== 今日驾驶舱 =====================
+function renderCockpit(c){
+  const st=taskStats();
+  const tasks=load('tasks',[]);
+
+  c.innerHTML=`
+    <div class="banner">
+      ${weatherHTML()}
+      <div class="banner-stat"><div class="banner-stat-value">${st.active}</div><div class="banner-stat-label">待办任务</div></div>
+      <div class="banner-stat"><div class="banner-stat-value">${st.done}</div><div class="banner-stat-label">已完成</div></div>
+    </div>
+    <div class="main-sidebar">
+      <div>
+        <div class="tabs-bar" id="cockpitTabs">
+          <button class="tab-btn active" data-tab="high">🔴 高优先级</button>
+          <button class="tab-btn" data-tab="todo">📋 待办</button>
+          <button class="tab-btn" data-tab="done">✅ 已完成</button>
+        </div>
+        <div id="cockpitContent"></div>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <input class="input" id="taskInput" placeholder="添加新任务..." style="flex:1">
+          <select class="input" id="taskPriority" style="width:80px"><option value="low">低</option><option value="medium" selected>中</option><option value="high">高</option></select>
+          <button class="btn btn-primary" id="taskAddBtn">添加</button>
+        </div>
+      </div>
+      <div>
+        <div class="card" id="cockpitCalCard">
+          <div class="card-header"><div class="card-title">📅 日历</div></div>
+          <div id="cockpitCal"></div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="card-header"><div class="card-title">⭐ 重要日记</div></div>
+          <div id="diaryList"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const cockpitTab = 'high';
+  function renderCockpitTab(tab){
+    let filtered=[];
+    if(tab==='high') filtered=tasks.filter(t=>!t.done&&t.priority==='high');
+    else if(tab==='todo') filtered=tasks.filter(t=>!t.done);
+    else filtered=tasks.filter(t=>t.done);
+
+    $('cockpitContent').innerHTML = filtered.length===0
+      ? '<div class="empty-state">暂无任务</div>'
+      : filtered.map(t=>`
+        <div class="item-row fade-in ${t.done?'':''}">
+          <span class="priority-dot priority-${t.priority}"></span>
+          <span style="flex:1;font-size:14px;${t.done?'text-decoration:line-through;color:var(--text-muted)':''}">${esc(t.text)}</span>
+          ${t.scheduledDate?`<span style="font-size:11px;color:var(--text-muted)">${t.scheduledDate}</span>`:''}
+          <button class="btn btn-sm" onclick="toggleTask(${t.id})">${t.done?'↩':'✓'}</button>
+          <button class="btn btn-sm btn-danger" onclick="delTask(${t.id})">✕</button>
+        </div>
+      `).join('');
+  }
+
+  document.querySelectorAll('#cockpitTabs .tab-btn').forEach(btn=>{
+    btn.onclick=()=>{ document.querySelectorAll('#cockpitTabs .tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderCockpitTab(btn.dataset.tab); };
+  });
+  renderCockpitTab(cockpitTab);
+
+  $('taskAddBtn').onclick=()=>{
+    const text=$('taskInput').value.trim(); if(!text)return;
+    const pri=$('taskPriority').value;
+    const tasks=load('tasks',[]);
+    tasks.push({id:genId(),text:text,priority:pri,done:false,createdAt:Date.now(),completedAt:null,scheduledDate:todayStr(),note:''});
+    save('tasks',tasks); $('taskInput').value=''; navigateTo('cockpit'); showToast('任务已添加');
+  };
+
+  // 日历
+  renderCockpitCalendar();
+  renderDiary();
+}
+
+window.toggleTask=function(id){ const tasks=load('tasks',[]); const t=tasks.find(t=>t.id===id); if(t){t.done=!t.done;t.completedAt=t.done?Date.now():null;} save('tasks',tasks); navigateTo(currentPage); };
+window.delTask=function(id){ const tasks=load('tasks',[]).filter(t=>t.id!==id); save('tasks',tasks); navigateTo(currentPage); };
+
+let calDate=new Date(), calSelected=todayStr();
+function renderCockpitCalendar(){
+  const y=calDate.getFullYear(),m=calDate.getMonth();
+  const mNames=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const events=load('events',{});
+  const firstDay=new Date(y,m,1).getDay(), daysInMonth=new Date(y,m+1,0).getDate(), prevDays=new Date(y,m,0).getDate();
+  const todayD=todayStr();
+
+  let html=`<div class="cal-header"><button class="cal-nav" onclick="calPrev()">‹</button><span class="cal-title">${y}年${mNames[m]}</span><button class="cal-nav" onclick="calNext()">›</button></div>`;
+  html+='<div class="cal-grid">';
+  ['日','一','二','三','四','五','六'].forEach(d=>html+=`<div class="cal-dh">${d}</div>`);
+  for(let i=firstDay-1;i>=0;i--) html+=`<div class="cal-day other">${prevDays-i}</div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const evs=events[ds]||[];
+    const cls=['cal-day'];
+    if(ds===todayD)cls.push('today');
+    if(ds===calSelected)cls.push('selected');
+    html+=`<div class="${cls.join(' ')}" onclick="selectCalDay('${ds}')">${d}${evs.length>0?`<div class="cal-dots">${evs.map(e=>`<span class="cal-dot" style="background:${e.color==='important'?'var(--danger)':e.color==='work'?'var(--accent)':'var(--success)'}"></span>`).join('')}</div>`:''}</div>`;
+  }
+  const total=firstDay+daysInMonth, rem=(7-(total%7))%7;
+  for(let d=1;d<=rem;d++) html+=`<div class="cal-day other">${d}</div>`;
+  html+='</div>';
+
+  // 选中日的事件
+  const selEvs=events[calSelected]||[];
+  html+=`<div style="margin-top:12px;font-size:12px;color:var(--text-secondary)">${calSelected} 的事件</div>`;
+  if(selEvs.length>0) html+=selEvs.map(e=>`<div class="item-row" style="padding:6px 10px;border-left:3px solid ${e.color==='important'?'var(--danger)':e.color==='work'?'var(--accent)':'var(--success)'}"><span style="flex:1;font-size:12px">${esc(e.text)}</span><button class="btn btn-sm btn-danger" onclick="delEvent('${calSelected}',${e.id})">✕</button></div>`).join('');
+  html+=`<div style="display:flex;gap:6px;margin-top:8px;"><input class="input" id="evInput" placeholder="添加事件..." style="flex:1"><select class="input" id="evColor" style="width:70px"><option value="work">工作</option><option value="important">重要</option><option value="personal">个人</option></select><button class="btn btn-sm btn-primary" onclick="addEvent()">添加</button></div>`;
+
+  $('cockpitCal').innerHTML=html;
+}
+
+function renderDiary(){
+  const diary=load('diary',[]).filter(d=>d.type==='important').sort((a,b)=>b.date>a.date?1:-1);
+  $('diaryList').innerHTML=diary.length===0
+    ?'<div class="empty-state" style="font-size:12px">暂无重要日记</div>'
+    :diary.map(d=>`<div class="item-row" style="padding:6px 10px"><span style="font-size:12px;color:var(--text-muted)">${d.date}</span><span style="flex:1;font-size:13px">${esc(d.title)}</span></div>`).join('');
+}
+
+window.calPrev=()=>{ calDate.setMonth(calDate.getMonth()-1); renderCockpitCalendar(); };
+window.calNext=()=>{ calDate.setMonth(calDate.getMonth()+1); renderCockpitCalendar(); };
+window.selectCalDay=(ds)=>{ calSelected=ds; renderCockpitCalendar(); };
+window.addEvent=()=>{ const text=$('evInput').value.trim(),color=$('evColor').value; if(!text)return; const events=load('events',{}); if(!events[calSelected])events[calSelected]=[]; events[calSelected].push({id:genId(),text,color}); save('events',events); $('evInput').value=''; renderCockpitCalendar(); };
+window.delEvent=(ds,id)=>{ const events=load('events',{}); events[ds]=events[ds].filter(e=>e.id!==id); if(!events[ds].length)delete events[ds]; save('events',events); renderCockpitCalendar(); };
+
+// ===================== 雅思备考(烟花主题) =====================
+function renderIelts(c){
+  const reading=load('ielts_reading',[]);
+  const vocab=load('ielts_vocabulary',[]);
+  const speaking=load('ielts_speaking',[]);
+  const mock=load('ielts_mock',[]);
+
+  c.innerHTML=`
+    <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,rgba(255,0,110,0.1),rgba(255,190,11,0.08));border-color:rgba(255,0,110,0.2)">
+      <div style="font-size:20px;font-weight:600">🇬🇧 雅思备考 · 烟花主题</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">每一次练习都是一朵绽放的烟花 🎆</div>
+    </div>
+    <div class="kanban-board kanban-4col">
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>📖 阅读素材库</span><button class="btn btn-sm btn-primary" onclick="kimiGenReading()">让Kimi生成</button></div>
+        <div class="kanban-column-body">${reading.map(r=>`
+          <div class="expandable-card" id="rc_${r.id}">
+            <div class="expandable-card-header" onclick="toggleExpand('rc_${r.id}')"><span class="arrow">▼</span><span style="flex:1;font-size:13px">${esc(r.title)}</span><span style="font-size:11px;color:var(--text-muted)">${r.difficulty}</span></div>
+            <div class="expandable-card-body"><div style="font-size:13px;line-height:1.7;margin-bottom:8px">${esc(r.content)}</div>${r.tags?r.tags.map(t=>`<span style="font-size:11px;color:var(--fw1);margin-right:4px">#${esc(t)}</span>`).join(''):''}<button class="btn btn-sm btn-danger" onclick="delIeltsReading(${r.id})">删除</button></div>
+          </div>
+        `).join('')||'<div class="empty-state">暂无阅读素材</div>'}</div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>📝 单词库</span><button class="btn btn-sm btn-primary" onclick="kimiExtractVocab()">从文章提取</button></div>
+        <div class="kanban-column-body">${vocab.map(v=>`
+          <div class="item-row" style="padding:8px">
+            <span style="font-weight:600;font-size:13px">${esc(v.word)}</span>
+            <span style="font-size:11px;color:var(--text-muted)">${esc(v.phonetic||'')}</span>
+            <span style="flex:1;font-size:12px">${esc(v.meaning)}</span>
+            <button class="btn btn-sm ${v.mastered?'':'btn-primary'}" onclick="markVocab(${v.id})">${v.mastered?'✓ 已掌握':'标记掌握'}</button>
+            <button class="btn btn-sm btn-danger" onclick="delVocab(${v.id})">✕</button>
+          </div>
+        `).join('')||'<div class="empty-state">暂无单词</div>'}</div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>🗣️ 口语素材库</span><button class="btn btn-sm btn-primary" onclick="kimiGenSpeaking()">生成新话题</button></div>
+        <div class="kanban-column-body">${speaking.map(s=>`
+          <div class="expandable-card" id="sc_${s.id}">
+            <div class="expandable-card-header" onclick="toggleExpand('sc_${s.id}')"><span class="arrow">▼</span><span style="flex:1;font-size:13px">${esc(s.topic)}</span><span style="font-size:11px;color:var(--text-muted)">Part ${s.part||1}</span></div>
+            <div class="expandable-card-body"><div style="font-size:13px;margin-bottom:8px"><b>问题:</b> ${esc(s.question||'')}</div><div style="font-size:13px;margin-bottom:8px"><b>回答草稿:</b> ${esc(s.answer||'')}</div><button class="btn btn-sm btn-danger" onclick="delSpeaking(${s.id})">删除</button></div>
+          </div>
+        `).join('')||'<div class="empty-state">暂无口语素材</div>'}</div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>🎭 模考记录</span><button class="btn btn-sm btn-primary" onclick="kimiMock()">开始情景模拟</button></div>
+        <div class="kanban-column-body">${mock.map(m=>`
+          <div class="item-row" style="padding:8px">
+            <span style="font-size:11px;color:var(--text-muted)">${m.date||todayStr()}</span>
+            <span style="flex:1;font-size:13px">${esc(m.type||'综合')} · ${esc(m.score||'未评分')}</span>
+            <button class="btn btn-sm btn-danger" onclick="delMock(${m.id})">✕</button>
+          </div>
+        `).join('')||'<div class="empty-state">暂无模考记录</div>'}</div>
+      </div>
+    </div>
+  `;
+}
+
+window.toggleExpand=function(id){ const el=document.getElementById(id); if(el) el.classList.toggle('open'); };
+window.delIeltsReading=function(id){ save('ielts_reading',load('ielts_reading',[]).filter(r=>r.id!==id)); navigateTo('ielts'); };
+window.delVocab=function(id){ save('ielts_vocabulary',load('ielts_vocabulary',[]).filter(v=>v.id!==id)); navigateTo('ielts'); };
+window.markVocab=function(id){ const v=load('ielts_vocabulary',[]); const item=v.find(i=>i.id===id); if(item)item.mastered=!item.mastered; save('ielts_vocabulary',v); navigateTo('ielts'); };
+window.delSpeaking=function(id){ save('ielts_speaking',load('ielts_speaking',[]).filter(s=>s.id!==id)); navigateTo('ielts'); };
+window.delMock=function(id){ save('ielts_mock',load('ielts_mock',[]).filter(m=>m.id!==id)); navigateTo('ielts'); };
+
+async function kimiGenReading(){
+  const result=await callKimi('请生成一篇雅思阅读练习文章（约200-300词），主题随机选择（如科技、环境、教育、健康等）。附带3-5个核心生词及其释义。用JSON格式返回：{title,content,difficulty,tags:[],words:[{word,meaning,phonetic}]}');
+  if(!result)return;
+  try{
+    const data=JSON.parse(result.replace(/```json|```/g,''));
+    const reading=load('ielts_reading',[]);
+    reading.push({id:genId(),title:data.title,content:data.content,difficulty:data.difficulty||'medium',tags:data.tags||[],createdAt:Date.now()});
+    save('ielts_reading',reading);
+    if(data.words){ const vocab=load('ielts_vocabulary',[]); data.words.forEach(w=>vocab.push({id:genId(),word:w.word,meaning:w.meaning,phonetic:w.phonetic||'',example:'',category:'academic',mastered:false})); save('ielts_vocabulary',vocab); }
+    navigateTo('ielts'); showToast('阅读素材已生成');
+  }catch(e){ showToast('解析Kimi返回数据失败，请重试'); }
+}
+async function kimiExtractVocab(){
+  const reading=load('ielts_reading',[]);
+  if(!reading.length){ showToast('请先添加阅读素材'); return; }
+  const latest=reading[reading.length-1];
+  const result=await callKimi(`请从以下雅思阅读文章中提取8-12个核心学术词汇，返回JSON数组：[{word,meaning,phonetic,example}]\n\n文章标题：${latest.title}\n内容：${latest.content}`);
+  if(!result)return;
+  try{
+    const words=JSON.parse(result.replace(/```json|```/g,''));
+    const vocab=load('ielts_vocabulary',[]);
+    words.forEach(w=>vocab.push({id:genId(),word:w.word,meaning:w.meaning,phonetic:w.phonetic||'',example:w.example||'',category:'academic',mastered:false}));
+    save('ielts_vocabulary',vocab); navigateTo('ielts'); showToast('单词已提取');
+  }catch(e){ showToast('解析失败'); }
+}
+async function kimiGenSpeaking(){
+  const result=await callKimi('请生成一个雅思口语Part2话题卡，包含话题名称、具体问题和3条建议表达。返回JSON：{topic,question,part:2,suggestions:[string]}');
+  if(!result)return;
+  try{
+    const data=JSON.parse(result.replace(/```json|```/g,''));
+    const speaking=load('ielts_speaking',[]);
+    speaking.push({id:genId(),topic:data.topic,question:data.question,answer:'',part:data.part||2,suggestions:data.suggestions||[],createdAt:Date.now()});
+    save('ielts_speaking',speaking); navigateTo('ielts'); showToast('口语话题已生成');
+  }catch(e){ showToast('解析失败'); }
+}
+async function kimiMock(){
+  openModal('情景模拟',
+    `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">Kimi将扮演雅思考官，与你进行口语情景对话。</div>
+     <textarea class="input" id="mockInput" rows="3" placeholder="输入你的回答..."></textarea>
+     <select class="input" id="mockPart" style="margin-top:8px;width:100px"><option value="1">Part 1</option><option value="2">Part 2</option><option value="3">Part 3</option></select>`,
+    async()=>{
+      const ans=$('mockInput').value.trim(), part=$('mockPart').value;
+      if(!ans)return;
+      const result=await callKimi(`我正在模拟雅思口语Part${part}。我的回答："${ans}"。请以雅思考官身份给出反馈，包括：流利度、词汇、语法、发音建议，以及改进方向。`);
+      if(result){
+        const mock=load('ielts_mock',[]);
+        mock.push({id:genId(),date:todayStr(),type:'speaking_part'+part,score:'待自评',notes:result,createdAt:Date.now()});
+        save('ielts_mock',mock); closeModal(); navigateTo('ielts'); showToast('模考反馈已保存');
+      }
+    }
+  );
+}
+
+// ===================== 烟花知识 =====================
+function renderFireworks(c){
+  const recipes=load('fw_recipes',[]);
+  const insp=load('fw_inspiration',[]);
+  const logs=load('fw_logs',[]);
+
+  c.innerHTML=`
+    <div class="kanban-board kanban-3col">
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>🧪 配方/原理</span><button class="btn btn-sm btn-primary" onclick="addFwRecipe()">+ 新记录</button></div>
+        <div class="kanban-column-body">${recipes.map(r=>`
+          <div class="expandable-card" id="fwr_${r.id}">
+            <div class="expandable-card-header" onclick="toggleExpand('fwr_${r.id}')"><span class="arrow">▼</span><span style="flex:1;font-size:13px">${esc(r.title)}</span><span style="font-size:11px;color:var(--text-muted)">${r.category}</span></div>
+            <div class="expandable-card-body"><div style="font-size:13px;line-height:1.7">${esc(r.content)}</div>${r.tags?r.tags.map(t=>`<span style="font-size:11px;color:var(--accent);margin-right:4px">#${esc(t)}</span>`).join(''):''}<button class="btn btn-sm btn-danger" onclick="delFwRecipe(${r.id})">删除</button></div>
+          </div>
+        `).join('')||'<div class="empty-state">暂无配方/原理</div>'}</div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>🎨 设计灵感库</span><button class="btn btn-sm btn-primary" onclick="addFwInsp()">+ 新灵感</button></div>
+        <div class="kanban-column-body">${insp.map(i=>`
+          <div class="item-row" style="padding:10px;flex-direction:column;align-items:flex-start;gap:6px">
+            <span style="font-size:14px;font-weight:600">${esc(i.title)}</span>
+            ${i.imageUrl?`<img src="${esc(i.imageUrl)}" style="max-width:100%;max-height:150px;border-radius:8px;margin-top:4px" onerror="this.style.display='none'">`:''}
+            ${i.imageBase64?`<img src="${i.imageBase64}" style="max-width:100%;max-height:150px;border-radius:8px;margin-top:4px">`:''}
+            <span style="font-size:12px;color:var(--text-secondary)">${esc(i.description||'')}</span>
+            <button class="btn btn-sm btn-danger" onclick="delFwInsp(${i.id})">删除</button>
+          </div>
+        `).join('')||'<div class="empty-state">暂无灵感</div>'}</div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>🧪 实验/项目日志</span><div style="display:flex;gap:4px"><button class="btn btn-sm" onclick="addFwLogManual()">手动记录</button><button class="btn btn-sm btn-primary" onclick="addFwLog()">⏱ 计时记录</button></div></div>
+        <div class="kanban-column-body">${logs.map(l=>`
+          <div class="expandable-card" id="fwl_${l.id}">
+            <div class="expandable-card-header" onclick="toggleExpand('fwl_${l.id}')"><span class="arrow">▼</span><span style="flex:1;font-size:13px">${esc(l.title)}</span><span style="font-size:11px;color:${l.result==='成功'?'var(--success)':l.result==='失败'?'var(--danger)':'var(--text-muted)'}">${l.result||'待定'}</span></div>
+            <div class="expandable-card-body"><div style="font-size:13px;line-height:1.7">${esc(l.content)}</div><button class="btn btn-sm btn-danger" onclick="delFwLog(${l.id})">删除</button></div>
+          </div>
+        `).join('')||'<div class="empty-state">暂无实验日志</div>'}</div>
+      </div>
+    </div>
+  `;
+}
+
+window.addFwRecipe=()=>{ openModal('添加配方/原理',
+  `<input class="input" id="fwrTitle" placeholder="标题" style="margin-bottom:8px">
+   <select class="input" id="fwrCat" style="margin-bottom:8px;width:120px"><option value="配方">配方</option><option value="原理">原理</option><option value="安全">安全</option></select>
+   <textarea class="input" id="fwrContent" rows="4" placeholder="内容..."></textarea>`,
+  ()=>{ const t=$('fwrTitle').value.trim(),cat=$('fwrCat').value,cont=$('fwrContent').value.trim(); if(!t||!cont)return; const recipes=load('fw_recipes',[]); recipes.push({id:genId(),title:t,content:cont,category:cat,tags:[],createdAt:Date.now()}); save('fw_recipes',recipes); closeModal(); navigateTo('fireworks'); }
+); };
+window.delFwRecipe=id=>{ save('fw_recipes',load('fw_recipes',[]).filter(r=>r.id!==id)); navigateTo('fireworks'); };
+
+window.addFwInsp=()=>{ openModal('添加设计灵感',
+  `<input class="input" id="fwiTitle" placeholder="灵感名称" style="margin-bottom:8px">
+   <textarea class="input" id="fwiDesc" rows="2" placeholder="备注描述..." style="margin-bottom:8px"></textarea>
+   <input class="input" id="fwiUrl" placeholder="图片URL链接（可选）" style="margin-bottom:8px">
+   <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">或上传本地图片：</div>
+   <input type="file" accept="image/*" id="fwiFile" style="margin-bottom:8px">`,
+  ()=>{ const t=$('fwiTitle').value.trim(),desc=$('fwiDesc').value.trim(),url=$('fwiUrl').value.trim(); if(!t)return; const insp=load('fw_inspiration',[]); const item={id:genId(),title:t,description:desc,imageUrl:url||'',imageBase64:'',createdAt:Date.now()};
+    const fileInput=$('fwiFile'); if(fileInput.files.length>0){ const reader=new FileReader(); reader.onload=e=>{item.imageBase64=e.target.result; insp.push(item); save('fw_inspiration',insp); closeModal(); navigateTo('fireworks');}; reader.readAsDataURL(fileInput.files[0]); }else{ insp.push(item); save('fw_inspiration',insp); closeModal(); navigateTo('fireworks'); }
+  }
+); };
+window.delFwInsp=id=>{ save('fw_inspiration',load('fw_inspiration',[]).filter(i=>i.id!==id)); navigateTo('fireworks'); };
+
+window.addFwLog=()=>{ navigateTo('tools'); setTimeout(()=>{ if(typeof startTagTimer==='function') startTagTimer('烟花实验'); },100); showToast('计时已启动，完成后回来记录'); };
+// 也支持直接手动添加
+window.addFwLogManual=()=>{ openModal('添加实验日志',
+  `<input class="input" id="fwlTitle" placeholder="项目名称" style="margin-bottom:8px">
+   <textarea class="input" id="fwlContent" rows="4" placeholder="过程记录..." style="margin-bottom:8px"></textarea>
+   <select class="input" id="fwlResult" style="width:100px"><option value="待定">待定</option><option value="成功">成功</option><option value="失败">失败</option></select>`,
+  ()=>{ const t=$('fwlTitle').value.trim(),cont=$('fwlContent').value.trim(),res=$('fwlResult').value; if(!t)return; const logs=load('fw_logs',[]); logs.push({id:genId(),title:t,content:cont,result:res,createdAt:Date.now()}); save('fw_logs',logs); closeModal(); navigateTo('fireworks'); }
+); };
+window.delFwLog=id=>{ save('fw_logs',load('fw_logs',[]).filter(l=>l.id!==id)); navigateTo('fireworks'); };
+
+// ===================== 金融知识 =====================
+function renderFinance(c){
+  const concepts=load('fin_concepts',[]);
+  const market=load('fin_market',[]);
+  const review=load('fin_review',[]);
+
+  c.innerHTML=`
+    <div class="kanban-board kanban-3col">
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>📖 核心概念</span><button class="btn btn-sm btn-primary" onclick="addFinConcept()">+ 新概念</button></div>
+        <div class="kanban-column-body">${concepts.map(co=>`
+          <div class="expandable-card" id="finc_${co.id}">
+            <div class="expandable-card-header" onclick="toggleExpand('finc_${co.id}')"><span class="arrow">▼</span><span style="flex:1;font-size:13px">${esc(co.title)}</span><span style="font-size:11px;color:var(--text-muted)">${co.category}</span></div>
+            <div class="expandable-card-body"><div style="font-size:13px;line-height:1.7">${esc(co.content)}</div><div style="margin-top:8px;font-size:12px;color:var(--text-secondary)">理解程度: ${'★'.repeat(co.understanding||1)}${'☆'.repeat(5-(co.understanding||1))}</div><button class="btn btn-sm btn-danger" onclick="delFinConcept(${co.id})">删除</button></div>
+          </div>
+        `).join('')||'<div class="empty-state">暂无概念</div>'}</div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>📊 市场动态/观点</span><button class="btn btn-sm btn-primary" onclick="addFinMarket()">+ 新记录</button></div>
+        <div class="kanban-column-body">${market.map(m=>`
+          <div class="item-row" style="padding:8px;flex-direction:column;align-items:flex-start;gap:4px">
+            <span style="font-size:11px;color:var(--text-muted)">${m.date||todayStr()} · ${m.type||'观点'}</span>
+            <span style="font-size:13px">${esc(m.title)}</span>
+            <span style="font-size:12px;color:var(--text-secondary)">${esc(m.content||'').slice(0,80)}...</span>
+            <button class="btn btn-sm btn-danger" onclick="delFinMarket(${m.id})">删除</button>
+          </div>
+        `).join('')||'<div class="empty-state">暂无动态</div>'}</div>
+      </div>
+      <div class="kanban-column">
+        <div class="kanban-column-header"><span>📈 模拟/实操复盘</span><button class="btn btn-sm btn-primary" onclick="addFinReview()">+ 新复盘</button></div>
+        <div class="kanban-column-body">${review.map(r=>`
+          <div class="item-row" style="padding:8px">
+            <span style="font-size:11px;color:var(--text-muted)">${r.date||todayStr()}</span>
+            <span style="font-size:13px;font-weight:600">${esc(r.action||'')} ${esc(r.instrument||'')}</span>
+            <span style="font-size:12px;color:${r.result==='盈'?'var(--success)':r.result==='亏'?'var(--danger)':'var(--text-muted)'}">${r.result||'持平'} ${r.pnl?`${r.pnl>0?'+':''}${r.pnl}`:''}</span>
+            <button class="btn btn-sm btn-danger" onclick="delFinReview(${r.id})">删除</button>
+          </div>
+        `).join('')||'<div class="empty-state">暂无复盘</div>'}</div>
+      </div>
+    </div>
+  `;
+}
+
+window.addFinConcept=()=>{ openModal('添加核心概念',
+  `<input class="input" id="fcTitle" placeholder="概念名称" style="margin-bottom:8px">
+   <select class="input" id="fcCat" style="margin-bottom:8px;width:100px"><option value="股票">股票</option><option value="基金">基金</option><option value="债券">债券</option><option value="宏观">宏观</option></select>
+   <textarea class="input" id="fcContent" rows="3" placeholder="定义和我的理解..."></textarea>
+   <div style="margin-top:8px;font-size:12px;color:var(--text-secondary)">理解程度</div>
+   <select class="input" id="fcUnderstanding" style="width:80px"><option value="1">1☆</option><option value="2">2☆</option><option value="3">3☆</option><option value="4">4☆</option><option value="5">5☆</option></select>`,
+  ()=>{ const t=$('fcTitle').value.trim(),cat=$('fcCat').value,cont=$('fcContent').value.trim(),u=parseInt($('fcUnderstanding').value); if(!t)return; const concepts=load('fin_concepts',[]); concepts.push({id:genId(),title:t,content:cont,category:u,understanding:u,createdAt:Date.now()}); save('fin_concepts',concepts); closeModal(); navigateTo('finance'); }
+); };
+window.delFinConcept=id=>{ save('fin_concepts',load('fin_concepts',[]).filter(c=>c.id!==id)); navigateTo('finance'); };
+
+window.addFinMarket=()=>{ openModal('添加市场动态/观点',
+  `<input class="input" id="fmTitle" placeholder="标题" style="margin-bottom:8px">
+   <select class="input" id="fmType" style="margin-bottom:8px;width:80px"><option value="动态">动态</option><option value="观点">观点</option></select>
+   <textarea class="input" id="fmContent" rows="3" placeholder="内容摘要和我的判断..."></textarea>`,
+  ()=>{ const t=$('fmTitle').value.trim(),type=$('fmType').value,cont=$('fmContent').value.trim(); if(!t)return; const market=load('fin_market',[]); market.push({id:genId(),date:todayStr(),title:t,content:cont,type,createdAt:Date.now()}); save('fin_market',market); closeModal(); navigateTo('finance'); }
+); };
+window.delFinMarket=id=>{ save('fin_market',load('fin_market',[]).filter(m=>m.id!==id)); navigateTo('finance'); };
+
+window.addFinReview=()=>{ openModal('添加模拟/实操复盘',
+  `<select class="input" id="frAction" style="margin-bottom:8px;width:80px"><option value="买入">买入</option><option value="卖出">卖出</option><option value="持有">持有</option></select>
+   <input class="input" id="frInstrument" placeholder="标的(如: 沪深300ETF)" style="margin-bottom:8px">
+   <select class="input" id="frResult" style="margin-bottom:8px;width:80px"><option value="盈">盈</option><option value="亏">亏</option><option value="持平">持平</option></select>
+   <input class="input" id="frPnl" placeholder="盈亏金额" type="number" style="margin-bottom:8px">
+   <textarea class="input" id="frReflection" rows="3" placeholder="经验教训..."></textarea>`,
+  ()=>{ const action=$('frAction').value,inst=$('frInstrument').value.trim(),result=$('frResult').value,pnl=parseFloat($('frPnl').value)||0,ref=$('frReflection').value.trim(); if(!inst)return; const review=load('fin_review',[]); review.push({id:genId(),date:todayStr(),action,instrument:inst,result,pnl,reflection:ref,createdAt:Date.now()}); save('fin_review',review); closeModal(); navigateTo('finance'); }
+); };
+window.delFinReview=id=>{ save('fin_review',load('fin_review',[]).filter(r=>r.id!==id)); navigateTo('finance'); };
+
+// ===================== 记账区 =====================
+function renderAccounting(c){
+  const expenses=load('expenses',[]);
+  const now=new Date();
+  const monthly=expenses.filter(e=>{ const d=new Date(e.date); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); });
+  const total=monthly.reduce((s,e)=>s+e.amount,0);
+  const superVal=monthly.filter(e=>e.feelings&&e.feelings.includes('#超值'));
+  const impulse=monthly.filter(e=>e.feelings&&e.feelings.includes('#冲动'));
+
+  c.innerHTML=`
+    <div class="banner">
+      <div class="banner-stat"><div class="banner-stat-value">¥${total.toFixed(0)}</div><div class="banner-stat-label">本月支出</div></div>
+      <div class="banner-stat"><div class="banner-stat-value" style="color:var(--success)">${superVal.length}笔/¥${superVal.reduce((s,e)=>s+e.amount,0).toFixed(0)}</div><div class="banner-stat-label">#超值消费</div></div>
+      <div class="banner-stat"><div class="banner-stat-value" style="color:var(--danger)">${impulse.length}笔/¥${impulse.reduce((s,e)=>s+e.amount,0).toFixed(0)}</div><div class="banner-stat-label">#冲动消费</div></div>
+    </div>
+    <div class="tabs-bar" id="acctTabs">
+      <button class="tab-btn active" data-tab="list">💰 今日/本周流水</button>
+      <button class="tab-btn" data-tab="pie">📊 分类占比</button>
+      <button class="tab-btn" data-tab="feel">🔍 感受分析</button>
+    </div>
+    <div id="acctContent"></div>
+  `;
+
+  function renderAcctTab(tab){
+    if(tab==='list'){
+      const recent=expenses.filter(e=>{ const d=new Date(e.date); const diff=(now-d)/(86400000); return diff<=7; }).sort((a,b)=>b.date>a.date?1:-1);
+      $('acctContent').innerHTML=`
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <input class="input" id="expAmt" placeholder="金额" type="number" style="width:80px">
+          <select class="input" id="expCat" style="width:80px"><option>餐饮</option><option>交通</option><option>购物</option><option>娱乐</option><option>生活</option><option>其他</option></select>
+          <input class="input" id="expDesc" placeholder="备注" style="flex:1">
+          <div style="display:flex;gap:4px;align-items:center"><button class="feeling-tag" data-feel="#超值" onclick="toggleFeel(this)">#超值</button><button class="feeling-tag" data-feel="#心疼" onclick="toggleFeel(this)">#心疼</button><button class="feeling-tag" data-feel="#冲动" onclick="toggleFeel(this)">#冲动</button></div>
+          <button class="btn btn-primary" id="expAddBtn">添加</button>
+        </div>
+        ${recent.map(e=>`
+          <div class="item-row fade-in">
+            <span style="font-size:12px;color:var(--text-muted);width:80px">${e.date}</span>
+            <span style="font-size:12px">${e.category}</span>
+            <span style="font-size:14px;font-weight:600;color:var(--danger)">¥${e.amount.toFixed(0)}</span>
+            <span style="flex:1;font-size:13px">${esc(e.description)}</span>
+            ${e.feelings?e.feelings.map(f=>`<span style="font-size:11px;color:${f==='#超值'?'var(--success)':f==='#心疼'?'var(--danger)':'var(--warning)'}">${f}</span>`).join(''):''}
+            <button class="btn btn-sm btn-danger" onclick="delExpense(${e.id})">✕</button>
+          </div>
+        `).join('')||'<div class="empty-state">本周暂无消费记录</div>'}
+      `;
+      $('expAddBtn').onclick=addExpense;
+    } else if(tab==='pie'){
+      const catTotals={};
+      monthly.forEach(e=>catTotals[e.category]=(catTotals[e.category]||0)+e.amount);
+      const colors=['#ff006e','#fb5607','#ffbe0b','#8338ec','#3a86ff','#00b894'];
+      let cum=0;
+      const stops=Object.entries(catTotals).map(([cat,amt],i)=>{
+        const start=(cum/total)*360; cum+=amt; const end=(cum/total)*360;
+        return `${colors[i%colors.length]} ${start}deg ${end}deg`;
+      }).join(',');
+      $('acctContent').innerHTML=`
+        <div class="pie-wrap">
+          <div class="pie-chart" style="background:conic-gradient(${stops})"><div class="pie-chart-inner">¥${total.toFixed(0)}</div></div>
+          <div class="pie-legend">${Object.entries(catTotals).map(([cat,amt],i)=>`
+            <div class="pie-legend-item"><span class="pie-legend-color" style="background:${colors[i%colors.length]}"></span><span>${cat}</span><span style="margin-left:auto;font-size:12px;color:var(--text-secondary)">¥${amt.toFixed(0)} (${((amt/total)*100).toFixed(1)}%)</span></div>
+          `).join('')}</div>
+        </div>
+      `;
+    } else {
+      const feelData={'#超值':{count:0,total:0},'#心疼':{count:0,total:0},'#冲动':{count:0,total:0}};
+      monthly.forEach(e=>{ if(e.feelings) e.feelings.forEach(f=>{ if(feelData[f]){feelData[f].count++;feelData[f].total+=e.amount;} }); });
+      $('acctContent').innerHTML=`
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+          ${Object.entries(feelData).map(([f,d])=>`
+            <div class="card" style="text-align:center"><div style="font-size:24px;font-weight:600;color:${f==='#超值'?'var(--success)':f==='#心疼'?'var(--danger)':'var(--warning)'}">${d.count}笔</div><div style="font-size:13px;margin-top:4px">${f}</div><div style="font-size:14px;color:var(--text-secondary);margin-top:4px">¥${d.total.toFixed(0)}</div></div>
+          `).join('')}
+        </div>
+        <button class="btn btn-primary" onclick="kimiAnalyzeSpending()">🔍 让Kimi分析我的花钱模式</button>
+      `;
+    }
+  }
+
+  document.querySelectorAll('#acctTabs .tab-btn').forEach(btn=>{
+    btn.onclick=()=>{ document.querySelectorAll('#acctTabs .tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAcctTab(btn.dataset.tab); };
+  });
+  renderAcctTab('list');
+}
+
+window.toggleFeel=function(el){ const feels=['#超值','#心疼','#冲动']; const f=el.dataset.feel; feels.forEach(f2=>{ const btns=document.querySelectorAll(`.feeling-tag[data-feel="${f2}"]`); btns.forEach(b=>{ b.classList.remove('active-super','active-pain','active-impulse'); }); }); el.classList.toggle(f==='#超值'?'active-super':f==='#心疼'?'active-pain':'active-impulse'); };
+
+function addExpense(){
+  const amt=parseFloat($('expAmt').value),cat=$('expCat').value,desc=$('expDesc').value.trim();
+  if(!amt||amt<=0){showToast('请输入金额');return;}
+  const feelings=[];
+  document.querySelectorAll('.feeling-tag.active-super,.feeling-tag.active-pain,.feeling-tag.active-impulse').forEach(b=>feelings.push(b.dataset.feel));
+  const expenses=load('expenses',[]);
+  expenses.push({id:genId(),date:todayStr(),amount:amt,category:cat,description:desc,feelings,createdAt:Date.now()});
+  save('expenses',expenses); navigateTo('accounting'); showToast('消费已记录 ¥'+amt);
+}
+window.delExpense=id=>{ save('expenses',load('expenses',[]).filter(e=>e.id!==id)); navigateTo('accounting'); };
+
+async function kimiAnalyzeSpending(){
+  const expenses=load('expenses',[]);
+  const monthly=expenses.filter(e=>{ const d=new Date(e.date),now=new Date(); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); });
+  if(monthly.length<3){showToast('至少需要3条消费记录才能分析');return;}
+  const summary=monthly.map(e=>`${e.date} | ${e.category} | ¥${e.amount} | ${e.description} | ${e.feelings?.join(',')||'无标签'}`).join('\n');
+  const result=await callKimi(`分析我本月的消费模式，给出建议：\n${summary}\n\n请从以下维度分析：1)消费结构 2)冲动消费倾向 3)超值消费亮点 4)改善建议。简洁实用，中文回复。`);
+  if(result){ openModal('Kimi花钱模式分析',`<div style="font-size:14px;line-height:1.8">${esc(result)}</div>`,()=>closeModal()); }
+}
+
+// ===================== 工具箱 =====================
+let pomState={mode:'work',timeLeft:25*60,running:false,timer:null};
+let tagTimer={current:null,interval:null};
+
+function renderTools(c){
+  c.innerHTML=`
+    <div class="two-col">
+      <div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><div class="card-title">⏱ 时间感知</div></div>
+          <div style="text-align:center;margin-bottom:20px">
+            <div class="timer-display" id="pomDisplay">25:00</div>
+            <div class="timer-label" id="pomLabel">专注模式</div>
+            <div style="display:flex;justify-content:center;gap:8px;margin-top:12px">
+              <button class="btn" id="pomStart">开始</button>
+              <button class="btn" id="pomPause">暂停</button>
+              <button class="btn" id="pomReset">重置</button>
+              <button class="btn btn-primary" id="pomWork">专注25m</button>
+              <button class="btn" id="pomBreak">休息5m</button>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:16px;text-align:center">
+            <div style="font-size:14px;font-weight:600;margin-bottom:8px">倒计时器</div>
+            <div style="display:flex;gap:8px;justify-content:center">
+              <input class="input" id="cdMin" placeholder="分钟" type="number" style="width:60px;text-align:center">
+              <button class="btn btn-primary" id="cdStart">开始倒计时</button>
+            </div>
+            <div class="timer-display" id="cdDisplay" style="font-size:32px;margin-top:8px;color:var(--success)">--:--</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🏷 状态记录 · 计时+标签</div></div>
+          <div style="text-align:center;margin-bottom:16px">
+            <div class="timer-display" id="tagTimerDisplay" style="font-size:36px">00:00:00</div>
+            <div class="timer-label" id="tagTimerLabel">未开始</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <select class="input" id="tagSelect" style="flex:1">
+              <option value="深度工作">#深度工作</option><option value="学习">#学习</option><option value="外出">#外出</option><option value="社交">#社交</option><option value="运动">#运动</option><option value="烟花实验">#烟花实验</option><option value="自定义">#自定义...</option>
+            </select>
+            <button class="btn btn-primary" id="tagStartBtn">开始</button>
+            <button class="btn btn-danger" id="tagStopBtn">结束并保存</button>
+          </div>
+          <div id="timerRecords"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-header"><div class="card-title">✨ 能量激活</div></div>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <button class="btn btn-primary" id="noiseRain">🌧 雨声</button>
+            <button class="btn" id="noiseCafe">☕ 咖啡馆</button>
+            <button class="btn" id="noiseWhite">⬜ 白噪音</button>
+            <button class="btn btn-danger" id="noiseStop">⏹ 停止</button>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
+            <span style="font-size:12px;color:var(--text-secondary)">音量</span>
+            <input type="range" id="noiseVol" min="0" max="100" value="30" style="flex:1">
+          </div>
+          <div style="text-align:center;padding:20px">
+            <button class="btn btn-primary" id="breathBtn">🫁 呼吸练习(4-7-8)</button>
+            <div id="breathArea" style="margin-top:16px"></div>
+          </div>
+          <div style="text-align:center;padding-top:16px;border-top:1px solid var(--border)">
+            <button class="btn" id="randomActBtn">🎲 随机活动</button>
+            <div id="randomActResult" style="margin-top:8px;font-size:14px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 番茄钟
+  updatePomDisplay();
+  $('pomStart').onclick=()=>{ if(!pomState.running){pomState.running=true;pomState.timer=setInterval(pomTick,1000);$('pomStart').textContent='运行中';} };
+  $('pomPause').onclick=()=>{ if(pomState.running){clearInterval(pomState.timer);pomState.running=false;$('pomStart').textContent='继续';} };
+  $('pomReset').onclick=()=>{ clearInterval(pomState.timer);pomState.running=false;pomState.timeLeft=pomState.mode==='work'?25*60:5*60;$('pomStart').textContent='开始';updatePomDisplay(); };
+  $('pomWork').onclick=()=>{ clearInterval(pomState.timer);pomState.running=false;pomState.mode='work';pomState.timeLeft=25*60;$('pomStart').textContent='开始';updatePomDisplay(); };
+  $('pomBreak').onclick=()=>{ clearInterval(pomState.timer);pomState.running=false;pomState.mode='break';pomState.timeLeft=5*60;$('pomStart').textContent='开始';updatePomDisplay(); };
+
+  // 倒计时
+  let cdState={running:false,timer:null,timeLeft:0};
+  $('cdStart').onclick=()=>{
+    const min=parseInt($('cdMin').value)||0; if(min<=0){showToast('请输入分钟数');return;}
+    clearInterval(cdState.timer);cdState.timeLeft=min*60;cdState.running=true;
+    cdState.timer=setInterval(()=>{
+      cdState.timeLeft--;$('cdDisplay').textContent=fmtElapsed(cdState.timeLeft);
+      if(cdState.timeLeft<=0){clearInterval(cdState.timer);cdState.running=false;$('cdDisplay').textContent='完成!';showToast('倒计时完成!');playBeep();}
+    },1000);
+    $('cdDisplay').textContent=fmtElapsed(cdState.timeLeft);
+  };
+
+  // 计时+标签
+  renderTimerRecords();
+  $('tagStartBtn').onclick=()=>{ const label=$('tagSelect').value; startTagTimer(label); };
+  $('tagStopBtn').onclick=()=>{ stopTagTimer(); };
+
+  // 白噪音
+  let noiseCtx=null,noiseSource=null,noiseGain=null;
+  $('noiseStop').onclick=()=>{ if(noiseSource){noiseSource.stop();noiseSource=null;noiseCtx=null;} showToast('噪音已停止'); };
+  $('noiseRain').onclick=()=>playNoise('brown');
+  $('noiseCafe').onclick=()=>playNoise('pink');
+  $('noiseWhite').onclick=()=>playNoise('white');
+  $('noiseVol').oninput=()=>{ if(noiseGain)noiseGain.gain.value=$('noiseVol').value/300; };
+
+  // 呼吸练习
+  $('breathBtn').onclick=()=>{
+    $('breathArea').innerHTML='<div style="display:flex;justify-content:center"><div class="breathing-circle">呼吸中...</div></div><div style="text-align:center;margin-top:12px;font-size:13px;color:var(--text-secondary)">吸气4秒 → 屏息7秒 → 呼气8秒 · 共4轮</div>';
+  };
+
+  // 随机活动
+  const activities=['散步5分钟','做10个深蹲','整理桌面','喝一杯水','闭眼休息3分钟','写3件感恩的事','拉伸肩颈','看窗外30秒','画一幅速写','听一首新歌'];
+  $('randomActBtn').onclick=()=>{ $('randomActResult').textContent='👉 '+activities[Math.floor(Math.random()*activities.length)]; };
+}
+
+function updatePomDisplay(){
+  const el=$('pomDisplay'); if(!el)return;
+  el.textContent=fmtElapsed(pomState.timeLeft);
+  $('pomLabel').textContent=pomState.mode==='work'?'专注模式':'休息模式';
+}
+function pomTick(){
+  pomState.timeLeft--;updatePomDisplay();
+  if(pomState.timeLeft<=0){clearInterval(pomState.timer);pomState.running=false;$('pomStart').textContent='开始';showToast(pomState.mode==='work'?'🎉 专注完成!':'💪 休息结束!');pomState.mode=pomState.mode==='work'?'break':'work';pomState.timeLeft=pomState.mode==='work'?25*60:5*60;playBeep();}
+}
+
+function playBeep(){ try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=800;g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.5);o.start();o.stop(ctx.currentTime+0.5);}catch(e){} }
+
+function startTagTimer(label){
+  if(tagTimer.current) stopTagTimer();
+  if(label==='自定义'){ openModal('自定义标签','<input class="input" id="customTag" placeholder="输入标签名...">',()=>{ const t=$('customTag').value.trim(); if(t) startTagTimer(t); closeModal(); }); return; }
+  tagTimer.current={label,startTime:Date.now()};
+  tagTimer.interval=setInterval(()=>{
+    const elapsed=Math.floor((Date.now()-tagTimer.current.startTime)/1000);
+    const el=$('tagTimerDisplay'); if(el) el.textContent=fmtElapsed(elapsed);
+    const lbl=$('tagTimerLabel'); if(lbl) lbl.textContent='#'+tagTimer.current.label;
+  },1000);
+  $('tagTimerDisplay').textContent='00:00:01'; $('tagTimerLabel').textContent='#'+label;
+  showToast('计时开始: #'+label);
+}
+
+function stopTagTimer(){
+  if(!tagTimer.current)return;
+  clearInterval(tagTimer.interval);
+  const duration=Math.floor((Date.now()-tagTimer.current.startTime)/1000);
+  const records=load('timers',[]);
+  records.push({id:genId(),label:tagTimer.current.label,startTime:tagTimer.current.startTime,endTime:Date.now(),duration,createdAt:Date.now()});
+  save('timers',records);
+  showToast(`已保存: #${tagTimer.current.label} ${Math.floor(duration/60)}分钟`);
+  tagTimer.current=null;
+  if($('tagTimerDisplay')) $('tagTimerDisplay').textContent='00:00:00';
+  if($('tagTimerLabel')) $('tagTimerLabel').textContent='未开始';
+  renderTimerRecords();
+}
+
+function renderTimerRecords(){
+  const records=load('timers',[]).filter(r=>{ const d=new Date(r.startTime); return d.toDateString()===new Date().toDateString(); }).sort((a,b)=>b.startTime-a.startTime);
+  const el=$('timerRecords'); if(!el)return;
+  el.innerHTML=records.slice(0,10).map(r=>`
+    <div class="item-row" style="padding:6px 10px">
+      <span style="font-size:12px;color:var(--accent)">#${esc(r.label)}</span>
+      <span style="flex:1;font-size:12px">${fmtTime(r.startTime)} - ${fmtTime(r.endTime)}</span>
+      <span style="font-size:13px;font-weight:600">${Math.floor(r.duration/60)}分${r.duration%60}秒</span>
+    </div>
+  `).join('')||'<div class="empty-state" style="font-size:12px">今日暂无计时记录</div>';
+}
+
+function playNoise(type){
+  if(noiseSource){noiseSource.stop();}
+  noiseCtx=new(window.AudioContext||window.webkitAudioContext)();
+  const bufSize=2*noiseCtx.sampleRate;
+  const buf=noiseCtx.createBuffer(1,bufSize,noiseCtx.sampleRate);
+  const out=buf.getChannelData(0);
+  if(type==='white'){for(let i=0;i<bufSize;i++)out[i]=Math.random()*2-1;}
+  else if(type==='pink'){let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;for(let i=0;i<bufSize;i++){b0=0.99886*b0+0.0555179*Math.random()*2-1;b1=0.99332*b1+0.0750758*Math.random()*2-1;b2=0.969*b2+0.153852*Math.random()*2-1;b3=0.866*b3+0.3104856*Math.random()*2-1;b4=0.55*b4+0.432*Math.random()*2-1;b5=0;b6=0.115*b6+0.536*Math.random()*2-1;out[i]=(b0+b1+b2+b3+b4+b5+b6)*0.11;}}
+  else{let last=0;for(let i=0;i<bufSize;i++){const w=Math.random()*2-1;out[i]=(last+0.02*w)/1.02;last=out[i];out[i]*=3.5;}}
+  noiseSource=noiseCtx.createBufferSource();noiseSource.buffer=buf;noiseSource.loop=true;
+  noiseGain=noiseCtx.createGain();noiseGain.gain.value=$('noiseVol')?$('noiseVol').value/300:0.1;
+  noiseSource.connect(noiseGain);noiseGain.connect(noiseCtx.destination);noiseSource.start();
+  showToast(type==='brown'?'雨声播放中':type==='pink'?'咖啡馆噪音播放中':'白噪音播放中');
+}
+
+// ===================== 个人使用说明书 =====================
+function renderManual(c){
+  const rules=load('manual_rules',[]);
+
+  c.innerHTML=`
+    <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,var(--accent-glow),rgba(0,184,148,0.1));text-align:center;padding:32px">
+      <div style="font-size:24px;font-weight:700">📖 我的个人使用说明书</div>
+      <div style="font-size:14px;color:var(--text-secondary);margin-top:8px">顺着自己的规律生活</div>
+    </div>
+    <div class="card-header" style="margin-bottom:16px"><div class="card-title">规律清单</div><div class="card-actions"><button class="btn btn-primary" onclick="addRule()">+ 新规律</button></div></div>
+    <div id="rulesList">${rules.map(r=>`
+      <div class="card fade-in" style="margin-bottom:12px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px">${esc(r.title)}</div>
+        <div style="font-size:14px;color:var(--text-secondary);margin-bottom:4px"><b>触发:</b> 当${esc(r.trigger)}</div>
+        <div style="font-size:14px;color:var(--success);margin-bottom:4px"><b>行动:</b> 我可以${esc(r.action)}</div>
+        <div style="display:flex;gap:12px;font-size:11px;color:var(--text-muted);margin-top:8px">
+          <span>${r.discoveredDate||todayStr()}</span>
+          <span>${r.category||'通用'}</span>
+          <span>有效性: ${'★'.repeat(r.effectiveness||3)}${'☆'.repeat(5-(r.effectiveness||3))}</span>
+        </div>
+        <button class="btn btn-sm btn-danger" style="margin-top:8px" onclick="delRule(${r.id})">删除</button>
+      </div>
+    `).join('')||'<div class="empty-state">暂无规律，开始记录你的生活模式吧</div>'}</div>
+    <div style="text-align:center;padding:24px;border-top:1px solid var(--border);margin-top:20px">
+      <button class="btn btn-primary" onclick="kimiReviewRules()">🔄 请Kimi复盘最近记录，发现新规律</button>
+    </div>
+  `;
+}
+
+window.addRule=()=>{ openModal('添加新规律',
+  `<input class="input" id="ruleTitle" placeholder="规律标题(如: 下午咖啡管理)" style="margin-bottom:8px">
+   <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">当我...</div>
+   <input class="input" id="ruleTrigger" placeholder="触发条件" style="margin-bottom:8px">
+   <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">我可以...</div>
+   <input class="input" id="ruleAction" placeholder="行动方案" style="margin-bottom:8px">
+   <select class="input" id="ruleCat" style="margin-bottom:8px;width:100px"><option value="情绪">情绪</option><option value="效率">效率</option><option value="健康">健康</option><option value="学习">学习</option><option value="通用">通用</option></select>
+   <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">有效性自评</div>
+   <select class="input" id="ruleEff" style="width:80px"><option value="1">1☆</option><option value="2">2☆</option><option value="3" selected>3☆</option><option value="4">4☆</option><option value="5">5☆</option></select>`,
+  ()=>{ const t=$('ruleTitle').value.trim(),tr=$('ruleTrigger').value.trim(),a=$('ruleAction').value.trim(),cat=$('ruleCat').value,eff=parseInt($('ruleEff').value); if(!t||!tr||!a)return; const rules=load('manual_rules',[]); rules.push({id:genId(),title:t,trigger:tr,action:a,discoveredDate:todayStr(),category:cat,effectiveness:eff,enabled:true}); save('manual_rules',rules); closeModal(); navigateTo('manual'); showToast('规律已添加'); }
+); };
+window.delRule=id=>{ save('manual_rules',load('manual_rules',[]).filter(r=>r.id!==id)); navigateTo('manual'); };
+
+async function kimiReviewRules(){
+  const rules=load('manual_rules',[]);
+  const timers=load('timers',[]).slice(-20);
+  const tasks=load('tasks',[]).slice(-20);
+  const prompt=`请分析以下数据，发现新的生活规律，用"当我...我可以..."句式给出3-5条新建议：\n\n现有规律：${rules.map(r=>`${r.trigger} → ${r.action}`).join('\n')}\n\n最近计时记录：${timers.map(t=>`#${t.label} ${Math.floor(t.duration/60)}分钟`).join('\n')}\n\n最近任务：${tasks.map(t=>`${t.text} (${t.done?'已完成':'待办'})`).join('\n')}`;
+  const result=await callKimi(prompt,'你是个人生活规律分析助手，基于用户数据发现新规律，用简洁中文回复。');
+  if(result){
+    openModal('Kimi发现的新规律',`<div style="font-size:14px;line-height:1.8">${esc(result)}</div><div style="margin-top:16px;font-size:12px;color:var(--text-secondary)">你可以手动将认同的规律添加到说明书中</div>`,()=>closeModal());
+  }
+}
+
+// ===================== 设置 =====================
+function renderSettings(c){
+  const s=getSettings();
+  const provider=getSetting('aiProvider','kimi');
+  const config=AI_PROVIDERS[provider];
+  const isCustom=provider==='custom';
+  c.innerHTML=`
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><div class="card-title">🤖 AI 提供商配置</div></div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">选择AI提供商，填入对应的API Key，即可使用各模块的"AI生成/分析"功能。支持任何兼容OpenAI格式的API。</div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">选择提供商</div>
+        <select class="input" id="aiProvider" style="width:100%">
+          ${Object.entries(AI_PROVIDERS).map(([k,v])=>`<option value="${k}" ${k===provider?'selected':''}>${v.name}</option>`).join('')}
+        </select>
+      </div>
+      <div id="providerConfig">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">${config.keyLabel}</div>
+        <input class="input" id="aiApiKey" placeholder="${config.keyHint}" value="${esc(getSetting('aiApiKey',''))}" style="margin-bottom:8px">
+        ${config.keyUrl?`<div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">获取API Key: <a href="${config.keyUrl}" style="color:var(--accent)">${config.keyUrl}</a></div>`:''}
+        ${isCustom?`
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;margin-top:12px">API 地址</div>
+          <input class="input" id="aiCustomUrl" placeholder="https://your-api.com/v1/chat/completions" value="${esc(getSetting('aiCustomUrl',''))}" style="margin-bottom:8px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px">模型名称</div>
+          <input class="input" id="aiCustomModel" placeholder="model-name" value="${esc(getSetting('aiCustomModel',''))}" style="margin-bottom:8px">
+        `:''}
+      </div>
+      <button class="btn btn-primary" id="saveAiBtn">保存配置</button>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><div class="card-title">🎨 主题</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ${s.theme==='dark'?'btn-primary':''}" onclick="setTheme('dark')">🌙 深色</button>
+        <button class="btn ${s.theme==='light'?'btn-primary':''}" onclick="setTheme('light')">☀️ 浅色</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><div class="card-title">📦 数据管理</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="exportData()">⬇ 导出数据</button>
+        <button class="btn" onclick="document.getElementById('importFile').click()">⬆ 导入数据</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:8px">所有数据存储在浏览器本地，导出为JSON备份文件</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">ℹ️ 关于</div></div>
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+        <div><b>个人工作台 v1.0</b></div>
+        <div>单文件 HTML 应用 · 纯 CSS+JS · 零依赖</div>
+        <div>数据: localStorage 本地持久化</div>
+        <div>AI: 支持 Kimi / DeepSeek / OpenAI / 自定义API</div>
+      </div>
+    </div>
+  `;
+  $('saveAiBtn').onclick=()=>{
+    const p=$('aiProvider').value;
+    saveSetting('aiProvider',p);
+    saveSetting('aiApiKey',$('aiApiKey').value.trim());
+    if(p==='custom'){
+      saveSetting('aiCustomUrl',$('aiCustomUrl')?$('aiCustomUrl').value.trim():'');
+      saveSetting('aiCustomModel',$('aiCustomModel')?$('aiCustomModel').value.trim():'');
+    }
+    showToast('AI配置已保存 ✅'); navigateTo('settings');
+  };
+  $('aiProvider').onchange=()=>navigateTo('settings');
+}
+
+window.setTheme=function(t){
+  document.documentElement.setAttribute('data-theme',t); saveSetting('theme',t);
+  if(window.Capacitor&&window.Capacitor.Plugins.StatusBar){
+    window.Capacitor.Plugins.StatusBar.setStyle({style:t==='dark'?'DARK':'LIGHT'});
+    window.Capacitor.Plugins.StatusBar.setBackgroundColor({color:t==='dark'?'#0f0f1e':'#f0f0f5'});
+  }
+  navigateTo('settings'); showToast('主题已切换');
+};
+
+window.exportData=function(){
+  const allData={};
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(key.startsWith(PREFIX)) allData[key]=localStorage.getItem(key);
+  }
+  const blob=new Blob([JSON.stringify(allData,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`workbench_backup_${todayStr()}.json`; a.click();
+  URL.revokeObjectURL(url); showToast('数据已导出');
+};
+
+window.importData=function(fileInput){
+  const file=fileInput.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      Object.entries(data).forEach(([key,value])=>{ if(key.startsWith(PREFIX)) localStorage.setItem(key,value); });
+      showToast('数据导入成功，即将刷新...');
+      setTimeout(()=>location.reload(),1500);
+    }catch(err){ showToast('导入失败: 文件格式错误'); }
+  };
+  reader.readAsText(file);
+};
+
+// ===================== 初始化 =====================
+function initTheme(){
+  const theme=getSetting('theme','dark');
+  document.documentElement.setAttribute('data-theme',theme);
+}
+
+function initPage(){
+  initTheme();
+  // 绑定导航点击
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.addEventListener('click',()=>navigateTo(item.dataset.page));
+  });
+  // 移动端菜单
+  $('mobileMenuBtn').onclick=()=>$('sidebar').classList.toggle('open');
+  // 恢复上次页面
+  navigateTo(getSetting('activePage','home'));
+  // 外部链接用系统浏览器打开
+  document.addEventListener('click',function(e){
+    var link=e.target.closest('a[href^="http"]');
+    if(link&&window.Capacitor){
+      e.preventDefault();
+      window.Capacitor.Plugins.Browser.openUrl({url:link.href});
+    }
+  });
+  // 注册 Service Worker（仅浏览器环境，不在Capacitor原生中）
+  if('serviceWorker' in navigator&&!window.Capacitor){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+}
+
+document.addEventListener('DOMContentLoaded',initPage);
+</script>
+</body>
+</html>
